@@ -13,8 +13,7 @@ export class Pool {
     update(deltaTime) {
         this.pool.forEach(obj => {
             if (obj.active) {
-                obj.y += obj.speed * deltaTime;
-                if (obj.y > 640) obj.active = false; // Off-screen cleanup
+                obj.update(deltaTime);
             }
         });
     }
