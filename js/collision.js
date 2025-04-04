@@ -16,10 +16,10 @@ export class CollisionManager {
         // Lookup table for entity dimensions to avoid repeated calculations
         this.entityDimensions = {
             player: { width: 30, height: 30 },
-            enemy: { width: 40, height: 20 },
             bullet: { width: 3, height: 10 },
             fuelItem: { width: 20, height: 20 },
             bridge: { width: 0, height: 20 } // Bridge dimensions vary, width is set dynamically
+            // Enemy dimensions are now stored within enemy instances
         };
         
         // Collision effects
@@ -38,13 +38,17 @@ export class CollisionManager {
         if (this.game.state !== 'playing') return;
         
         const player = this.game.player;
-        const bullets = this.game.entities.filter(e => e instanceof Bullet && e.active);
+        const playerBullets = this.game.entities.filter(e => e instanceof Bullet && e.active && !e.fromEnemy);
+        const enemyBullets = this.game.entities.filter(e => e instanceof Bullet && e.active && e.fromEnemy);
         const enemies = this.game.entities.filter(e => e instanceof Enemy && e.active);
         const fuelItems = this.game.entities.filter(e => e instanceof FuelItem && e.active);
         const bridges = this.game.entities.filter(e => e instanceof Bridge && e.active);
         
         // Check bullet-enemy collisions
-        this.checkBulletEnemyCollisions(bullets, enemies);
+        this.checkBulletEnemyCollisions(playerBullets, enemies);
+        
+        // Check enemy bullet-player collisions
+        this.checkEnemyBulletPlayerCollisions(enemyBullets, player);
         
         // Check player-enemy collisions
         this.checkPlayerEnemyCollisions(player, enemies);
@@ -60,18 +64,44 @@ export class CollisionManager {
     }
     
     /**
-     * Check collisions between bullets and enemies
+     * Check collisions between player bullets and enemies
      */
     checkBulletEnemyCollisions(bullets, enemies) {
         bullets.forEach(bullet => {
             enemies.forEach(enemy => {
-                if (this.isColliding(bullet, enemy)) {
+                if (this.isCollidingWithEnemy(bullet, enemy)) {
                     bullet.active = false;
-                    enemy.active = false;
-                    this.game.score += 10;
-                    this.triggerCollisionEffect('explosion', enemy.x + 20, enemy.y + 10);
+                    
+                    // Handle multi-hit enemies
+                    const destroyed = enemy.takeDamage();
+                    
+                    if (destroyed) {
+                        enemy.active = false;
+                        this.game.score += enemy.points;
+                        this.triggerCollisionEffect('explosion', enemy.x + enemy.width / 2, enemy.y + enemy.height / 2);
+                    } else {
+                        // Enemy took damage but isn't destroyed
+                        this.triggerCollisionEffect('hit', enemy.x + enemy.width / 2, enemy.y + enemy.height / 2);
+                    }
                 }
             });
+        });
+    }
+    
+    /**
+     * Check collisions between enemy bullets and player
+     */
+    checkEnemyBulletPlayerCollisions(bullets, player) {
+        bullets.forEach(bullet => {
+            if (this.isColliding(bullet, player)) {
+                bullet.active = false;
+                this.game.lives--;
+                this.triggerCollisionEffect('playerHit', player.x + 15, player.y + 15);
+                
+                if (this.game.lives <= 0) {
+                    this.game.state = 'gameOver';
+                }
+            }
         });
     }
     
@@ -80,7 +110,7 @@ export class CollisionManager {
      */
     checkPlayerEnemyCollisions(player, enemies) {
         enemies.forEach(enemy => {
-            if (this.isColliding(player, enemy)) {
+            if (this.isCollidingWithEnemy(player, enemy)) {
                 enemy.active = false;
                 this.game.lives--;
                 this.triggerCollisionEffect('playerHit', player.x + 15, player.y + 15);
@@ -161,6 +191,21 @@ export class CollisionManager {
     }
     
     /**
+     * Optimized AABB collision detection between an entity and an enemy
+     * Uses enemy's width and height properties
+     */
+    isCollidingWithEnemy(entity, enemy) {
+        const aWidth = this.getDimension(entity, 'width');
+        const aHeight = this.getDimension(entity, 'height');
+        
+        // Simple AABB collision detection
+        return entity.x < enemy.x + enemy.width && 
+               entity.x + aWidth > enemy.x && 
+               entity.y < enemy.y + enemy.height && 
+               entity.y + aHeight > enemy.y;
+    }
+    
+    /**
      * Optimized AABB collision detection between two entities
      */
     isColliding(a, b) {
@@ -178,13 +223,14 @@ export class CollisionManager {
     }
     
     /**
-     * Get entity dimension from lookup table
+     * Get entity dimension from lookup table or directly from entity
      */
     getDimension(entity, dimension) {
         if (entity instanceof Player) {
             return this.entityDimensions.player[dimension];
         } else if (entity instanceof Enemy) {
-            return this.entityDimensions.enemy[dimension];
+            // Get dimensions directly from enemy instance
+            return entity[dimension];
         } else if (entity instanceof Bullet) {
             return this.entityDimensions.bullet[dimension];
         } else if (entity instanceof FuelItem) {
@@ -268,6 +314,14 @@ export class CollisionManager {
                 ctx.strokeStyle = '#FF0000';
                 ctx.lineWidth = 2;
                 ctx.stroke();
+                break;
+                
+            case 'hit':
+                ctx.fillStyle = '#FFFFFF';
+                ctx.globalAlpha = 0.6;
+                ctx.beginPath();
+                ctx.arc(position.x, position.y, 8, 0, Math.PI * 2);
+                ctx.fill();
                 break;
         }
         

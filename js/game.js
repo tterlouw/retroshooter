@@ -13,7 +13,16 @@ export class Game {
         this.state = 'menu'; // 'menu', 'playing', 'gameOver'
         this.entities = [];
         this.assets = new AssetManager();
-        this.bulletPool = new Pool(() => new Bullet(0, 0));
+        this.bulletPool = new Pool(() => {
+            const bullet = new Bullet(0, 0);
+            bullet.reset(); // Ensure bullet is properly initialized
+            return bullet;
+        });
+        this.enemyBulletPool = new Pool(() => {
+            const bullet = new Bullet(0, 0);
+            bullet.fromEnemy = true;
+            return bullet;
+        });
         this.enemyPool = new Pool(() => new Enemy(0, 0, 'boat'));
         this.fuelPool = new Pool(() => new FuelItem(0, 0));
         this.bridgePool = new Pool(() => new Bridge(0, 0, this.width * 0.5, this));
@@ -81,14 +90,8 @@ export class Game {
         this.entities.forEach(entity => entity.update(deltaTime));
         
         // Update all pools and add active objects to entities
-        this.bulletPool.update(deltaTime);
-        const activeBullets = this.bulletPool.pool.filter(bullet => bullet.active);
-        activeBullets.forEach(bullet => {
-            if (!this.entities.includes(bullet)) {
-                this.entities.push(bullet);
-            }
-        });
-        
+        this.updateBulletPool();
+        this.updateEnemyBulletPool();
         this.enemyPool.update(deltaTime);
         this.fuelPool.update(deltaTime);
         this.bridgePool.update(deltaTime);
@@ -126,13 +129,95 @@ export class Game {
         // Increase difficulty
         this.scrollSpeed += 0.1 * deltaTime;
     }
+    
+    updateBulletPool() {
+        this.bulletPool.update(deltaTime => {});
+        const activeBullets = this.bulletPool.pool.filter(bullet => bullet.active);
+        activeBullets.forEach(bullet => {
+            if (!this.entities.includes(bullet)) {
+                this.entities.push(bullet);
+            }
+        });
+    }
+    
+    updateEnemyBulletPool() {
+        this.enemyBulletPool.update(deltaTime => {});
+        const activeEnemyBullets = this.enemyBulletPool.pool.filter(bullet => bullet.active);
+        activeEnemyBullets.forEach(bullet => {
+            if (!this.entities.includes(bullet)) {
+                this.entities.push(bullet);
+            }
+        });
+    }
 
     spawnEnemy() {
+        // Select enemy type based on current section and random chance
+        const enemyType = this.selectEnemyType();
+        
         const enemy = this.enemyPool.get();
+        enemy.type = enemyType;
         enemy.x = this.width * 0.25 + Math.random() * (this.width * 0.5 - 40);
         enemy.y = -30;
+        enemy.initialX = enemy.x;
+        enemy.initialY = enemy.y;
+        
+        // If it's a shooting enemy, give it access to the bullet pool
+        if (enemyType === 'shooterBoat') {
+            enemy.bulletPool = this.enemyBulletPool;
+        } else {
+            enemy.bulletPool = null;
+        }
+        
+        // Reset health and other properties based on type
+        enemy.initEnemyType();
+        
         enemy.active = true;
         this.entities.push(enemy);
+    }
+    
+    selectEnemyType() {
+        // Enemy type selection based on game section and randomness
+        const random = Math.random();
+        
+        // Section 1: Only basic boats
+        if (this.currentSection === 1) {
+            return 'boat';
+        }
+        
+        // Section 2: Introduce helicopters
+        if (this.currentSection === 2) {
+            return random < 0.7 ? 'boat' : 'helicopter';
+        }
+        
+        // Section 3: Introduce fast boats
+        if (this.currentSection === 3) {
+            if (random < 0.5) return 'boat';
+            else if (random < 0.8) return 'helicopter';
+            else return 'fastBoat';
+        }
+        
+        // Section 4: Introduce heavy boats
+        if (this.currentSection === 4) {
+            if (random < 0.3) return 'boat';
+            else if (random < 0.55) return 'helicopter';
+            else if (random < 0.8) return 'fastBoat';
+            else return 'heavyBoat';
+        }
+        
+        // Section 5+: All enemy types, including shooter boats
+        const types = ['boat', 'helicopter', 'fastBoat', 'heavyBoat', 'shooterBoat'];
+        const weights = [0.2, 0.25, 0.25, 0.15, 0.15];
+        
+        // Select enemy type based on weights
+        let cumulativeWeight = 0;
+        for (let i = 0; i < types.length; i++) {
+            cumulativeWeight += weights[i];
+            if (random < cumulativeWeight) {
+                return types[i];
+            }
+        }
+        
+        return 'boat'; // Default to basic boat
     }
     
     spawnFuelItem() {
