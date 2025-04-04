@@ -5,14 +5,30 @@ import { InputHandler } from './input.js';
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
-// Responsive canvas sizing
-const scale = Math.min(window.innerWidth / 480, window.innerHeight / 640);
-canvas.width = 480 * scale;
-canvas.height = 640 * scale;
+// Set initial canvas size
+function resizeCanvas() {
+    const scale = Math.min(window.innerWidth / 480, window.innerHeight / 640);
+    canvas.width = 480 * scale;
+    canvas.height = 640 * scale;
+    
+    // Update game and renderer with new dimensions
+    if (window.game) {
+        window.game.handleResize(canvas.width, canvas.height);
+    }
+}
+
+// Initial sizing
+resizeCanvas();
 
 const renderer = new Renderer(ctx, canvas.width, canvas.height);
 const input = new InputHandler();
 const game = new Game(canvas.width, canvas.height, input, renderer);
+
+// Store game in window for resize handler
+window.game = game;
+
+// Add window resize event listener
+window.addEventListener('resize', resizeCanvas);
 
 // Main game loop
 let lastTime = 0;

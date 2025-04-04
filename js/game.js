@@ -2,6 +2,7 @@ import { Player, Enemy, Bullet, FuelItem } from './entities.js';
 import { Pool } from './pool.js';
 import { UI } from './ui.js';
 import { AssetManager } from './assets.js';
+import { CollisionManager } from './collision.js';
 
 export class Game {
     constructor(width, height, input, renderer) {
@@ -18,6 +19,12 @@ export class Game {
         this.ui = new UI(this);
         this.enemyTimer = 0;
         this.fuelTimer = 0;
+        this.collisionManager = new CollisionManager(this);
+        
+        // Enable debug collision visualization with D key
+        this.input.addKeyCallback('d', () => {
+            this.renderer.toggleDebug();
+        });
     }
 
     init() {
@@ -27,6 +34,10 @@ export class Game {
         this.fuel = 100;
         this.lives = 3;
         this.scrollSpeed = 100; // Pixels per second
+        
+        // Re-initialize collision manager when game restarts
+        // This updates the river boundaries in case the window was resized
+        this.collisionManager = new CollisionManager(this);
         
         // Start background music
         this.assets.sounds.bgm.loop = true;
@@ -86,7 +97,11 @@ export class Game {
             this.fuelTimer = 5 + Math.random() * 5; // 5-10 seconds
         }
         
+        // Check collisions
         this.checkCollisions();
+        
+        // Update collision effects
+        this.collisionManager.updateEffects(deltaTime);
 
         // Increase difficulty
         this.scrollSpeed += 0.1 * deltaTime;
@@ -109,52 +124,20 @@ export class Game {
     }
 
     checkCollisions() {
-        // Check bullet-enemy collisions
-        const bullets = this.entities.filter(e => e instanceof Bullet && e.active);
-        const enemies = this.entities.filter(e => e instanceof Enemy && e.active);
-        const fuelItems = this.entities.filter(e => e instanceof FuelItem && e.active);
-        
-        bullets.forEach(bullet => {
-            enemies.forEach(enemy => {
-                if (this.isColliding(bullet, enemy)) {
-                    bullet.active = false;
-                    enemy.active = false;
-                    this.score += 10;
-                }
-            });
-        });
-        
-        // Check player-enemy collisions
-        enemies.forEach(enemy => {
-            if (this.isColliding(this.player, enemy)) {
-                enemy.active = false;
-                this.lives--;
-                if (this.lives <= 0) {
-                    this.state = 'gameOver';
-                }
-            }
-        });
-        
-        // Check player-fuel collisions
-        fuelItems.forEach(fuel => {
-            if (this.isColliding(this.player, fuel)) {
-                fuel.active = false;
-                this.fuel = Math.min(100, this.fuel + 25);
-                this.assets.sounds.fuel.play().catch(e => console.log("Audio play failed:", e));
-            }
-        });
+        this.collisionManager.checkAllCollisions();
     }
 
     isColliding(a, b) {
-        // Simple AABB collision
-        const aWidth = a instanceof Player ? 30 : a instanceof Enemy ? 40 : a instanceof Bullet ? 3 : 20;
-        const aHeight = a instanceof Player ? 30 : a instanceof Enemy ? 20 : a instanceof Bullet ? 10 : 20;
-        const bWidth = b instanceof Player ? 30 : b instanceof Enemy ? 40 : b instanceof Bullet ? 3 : 20;
-        const bHeight = b instanceof Player ? 30 : b instanceof Enemy ? 20 : b instanceof Bullet ? 10 : 20;
+        return this.collisionManager.isColliding(a, b);
+    }
+    
+    // Handle window resize to update collision boundaries
+    handleResize(width, height) {
+        this.width = width;
+        this.height = height;
         
-        return a.x < b.x + bWidth && 
-               a.x + aWidth > b.x && 
-               a.y < b.y + bHeight && 
-               a.y + aHeight > b.y;
+        // Update collision manager boundaries
+        this.collisionManager.leftBankBoundary = this.width * 0.25;
+        this.collisionManager.rightBankBoundary = this.width * 0.75;
     }
 }
