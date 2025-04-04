@@ -1,5 +1,5 @@
 // filepath: d:\GithubRepos\retroshooter\js\collision.js
-import { Player, Enemy, Bullet, FuelItem } from './entities.js';
+import { Player, Enemy, Bullet, FuelItem, Bridge } from './entities.js';
 
 /**
  * CollisionManager handles all collision detection and resolution in the game.
@@ -18,7 +18,8 @@ export class CollisionManager {
             player: { width: 30, height: 30 },
             enemy: { width: 40, height: 20 },
             bullet: { width: 3, height: 10 },
-            fuelItem: { width: 20, height: 20 }
+            fuelItem: { width: 20, height: 20 },
+            bridge: { width: 0, height: 20 } // Bridge dimensions vary, width is set dynamically
         };
         
         // Collision effects
@@ -40,6 +41,7 @@ export class CollisionManager {
         const bullets = this.game.entities.filter(e => e instanceof Bullet && e.active);
         const enemies = this.game.entities.filter(e => e instanceof Enemy && e.active);
         const fuelItems = this.game.entities.filter(e => e instanceof FuelItem && e.active);
+        const bridges = this.game.entities.filter(e => e instanceof Bridge && e.active);
         
         // Check bullet-enemy collisions
         this.checkBulletEnemyCollisions(bullets, enemies);
@@ -52,6 +54,9 @@ export class CollisionManager {
         
         // Check player-terrain collisions
         this.checkPlayerTerrainCollision(player);
+        
+        // Check player-bridge collisions
+        this.checkPlayerBridgeCollisions(player, bridges);
     }
     
     /**
@@ -125,6 +130,37 @@ export class CollisionManager {
     }
     
     /**
+     * Check collisions between player and bridge sections
+     */
+    checkPlayerBridgeCollisions(player, bridges) {
+        const playerWidth = this.entityDimensions.player.width;
+        const playerHeight = this.entityDimensions.player.height;
+        
+        bridges.forEach(bridge => {
+            // Check each section of the bridge
+            bridge.sections.forEach(section => {
+                // Simple AABB collision check between player and bridge section
+                if (player.x < section.x + section.width &&
+                    player.x + playerWidth > section.x &&
+                    player.y < section.y + section.height &&
+                    player.y + playerHeight > section.y) {
+                    
+                    // Player hit a bridge section
+                    this.game.lives--;
+                    this.triggerCollisionEffect('bridgeHit', player.x + 15, player.y + 15);
+                    
+                    // Reset player position to just below the bridge
+                    player.y = section.y + section.height + 5;
+                    
+                    if (this.game.lives <= 0) {
+                        this.game.state = 'gameOver';
+                    }
+                }
+            });
+        });
+    }
+    
+    /**
      * Optimized AABB collision detection between two entities
      */
     isColliding(a, b) {
@@ -153,6 +189,8 @@ export class CollisionManager {
             return this.entityDimensions.bullet[dimension];
         } else if (entity instanceof FuelItem) {
             return this.entityDimensions.fuelItem[dimension];
+        } else if (entity instanceof Bridge) {
+            return this.entityDimensions.bridge[dimension];
         }
         return 0;
     }
@@ -219,6 +257,17 @@ export class CollisionManager {
                 ctx.beginPath();
                 ctx.arc(position.x, position.y, 25, 0, Math.PI * 2);
                 ctx.fill();
+                break;
+                
+            case 'bridgeHit':
+                ctx.fillStyle = '#FFCC00';
+                ctx.globalAlpha = 0.8;
+                ctx.beginPath();
+                ctx.arc(position.x, position.y, 18, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.strokeStyle = '#FF0000';
+                ctx.lineWidth = 2;
+                ctx.stroke();
                 break;
         }
         
