@@ -67,6 +67,8 @@ export class Bullet extends Entity {
         super(x, y);
         this.speed = 300;
         this.fromEnemy = false; // Flag to determine if bullet is from enemy or player
+        this.width = 5;  // Slightly wider bullet
+        this.height = 15; // Slightly taller bullet
     }
     
     update(deltaTime) {
@@ -80,9 +82,22 @@ export class Bullet extends Entity {
     }
     
     render(ctx) {
-        // Player bullets are white, enemy bullets are red
-        ctx.fillStyle = this.fromEnemy ? '#FF3333' : '#FFFFFF';
-        ctx.fillRect(this.x, this.y, 3, 10);
+        // Player bullets are white with yellow glow, enemy bullets are red with orange glow
+        if (this.fromEnemy) {
+            // Enemy bullet - red with glow
+            ctx.fillStyle = '#FF3333';
+            ctx.shadowColor = '#FF8800';
+            ctx.shadowBlur = 5;
+            ctx.fillRect(this.x, this.y, this.width, this.height);
+            ctx.shadowBlur = 0; // Reset shadow blur
+        } else {
+            // Player bullet - white with glow
+            ctx.fillStyle = '#FFFFFF';
+            ctx.shadowColor = '#FFFF00';
+            ctx.shadowBlur = 5;
+            ctx.fillRect(this.x, this.y, this.width, this.height);
+            ctx.shadowBlur = 0; // Reset shadow blur
+        }
     }
     
     reset() {
