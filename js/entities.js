@@ -32,11 +32,34 @@ export class Player extends Entity {
     }
     
     update(deltaTime) {
-        // Handle movement
-        if (this.input.isKeyDown('ArrowLeft')) this.x -= this.speed * deltaTime;
-        if (this.input.isKeyDown('ArrowRight')) this.x += this.speed * deltaTime;
-        if (this.input.isKeyDown('ArrowUp')) this.y -= this.speed * deltaTime;
-        if (this.input.isKeyDown('ArrowDown')) this.y += this.speed * deltaTime;
+        // Check if we're using touch joystick or keyboard
+        const usingJoystick = this.input.joystick && this.input.joystick.active;
+        
+        if (usingJoystick) {
+            // Handle joystick movement with variable speed based on joystick position
+            if (this.input.isKeyDown('ArrowLeft')) {
+                const leftValue = this.input.getJoystickDirectionValue('left');
+                this.x -= this.speed * leftValue * deltaTime;
+            }
+            if (this.input.isKeyDown('ArrowRight')) {
+                const rightValue = this.input.getJoystickDirectionValue('right');
+                this.x += this.speed * rightValue * deltaTime;
+            }
+            if (this.input.isKeyDown('ArrowUp')) {
+                const upValue = this.input.getJoystickDirectionValue('up');
+                this.y -= this.speed * upValue * deltaTime;
+            }
+            if (this.input.isKeyDown('ArrowDown')) {
+                const downValue = this.input.getJoystickDirectionValue('down');
+                this.y += this.speed * downValue * deltaTime;
+            }
+        } else {
+            // Keyboard controls - full speed
+            if (this.input.isKeyDown('ArrowLeft')) this.x -= this.speed * deltaTime;
+            if (this.input.isKeyDown('ArrowRight')) this.x += this.speed * deltaTime;
+            if (this.input.isKeyDown('ArrowUp')) this.y -= this.speed * deltaTime;
+            if (this.input.isKeyDown('ArrowDown')) this.y += this.speed * deltaTime;
+        }
         
         // Keep player within bounds
         this.x = Math.max(0, Math.min(this.x, 480 - 30));

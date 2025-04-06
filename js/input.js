@@ -10,6 +10,9 @@ export class InputHandler {
             fire: false
         };
         
+        // Touch sensitivity settings (lower = less sensitive)
+        this.touchSensitivity = 0.5; // 50% sensitivity compared to keyboard
+        
         // Virtual joystick properties
         this.joystick = {
             active: false,
@@ -23,7 +26,14 @@ export class InputHandler {
             distance: 0,
             maxDistance: 60, // Maximum distance for full speed
             visible: false,
-            touchId: null // To track the specific touch point for the joystick
+            touchId: null, // To track the specific touch point for the joystick
+            // Store normalized joystick values (-1 to 1) for each direction
+            dirValues: {
+                left: 0,
+                right: 0,
+                up: 0,
+                down: 0
+            }
         };
         
         this.touchAreas = {}; // Will store touch area coordinates
@@ -204,6 +214,12 @@ export class InputHandler {
         this.joystick.deltaX = 0;
         this.joystick.deltaY = 0;
         this.joystick.distance = 0;
+        this.joystick.dirValues = {
+            left: 0,
+            right: 0,
+            up: 0,
+            down: 0
+        };
         
         // Reset directional inputs
         this.touchInputs.left = false;
@@ -221,7 +237,6 @@ export class InputHandler {
 
     updateDirectionalInputs() {
         // Convert the joystick's angle and distance to directional inputs
-        // The strength of the input is proportional to the joystick distance
         const strength = this.joystick.distance / this.joystick.maxDistance;
         
         // Reset all directional inputs
@@ -230,56 +245,39 @@ export class InputHandler {
         this.touchInputs.up = false;
         this.touchInputs.down = false;
         
-        // Angle ranges for 8-way directional control
-        // Right: -π/8 to π/8
-        // Up-Right: -3π/8 to -π/8
-        // Up: -5π/8 to -3π/8
-        // Up-Left: -7π/8 to -5π/8
-        // Left: 7π/8 to -7π/8
-        // Down-Left: 5π/8 to 7π/8
-        // Down: 3π/8 to 5π/8
-        // Down-Right: π/8 to 3π/8
+        // Reset all directional values
+        this.joystick.dirValues = {
+            left: 0,
+            right: 0,
+            up: 0,
+            down: 0
+        };
         
-        const angle = this.joystick.angle;
-        const PI8 = Math.PI / 8;
+        // Apply touch sensitivity to the strength
+        const adjustedStrength = strength * this.touchSensitivity;
         
         // Only register input if the joystick has moved a minimum distance
         if (strength > 0.2) {
-            // Right quadrant
-            if (angle > -PI8 && angle < PI8) {
+            // Calculate normalized direction values based on the angle
+            // These are continuous values between 0 and 1 representing the strength
+            // in each direction, and will be used by the player entity
+            
+            // Horizontal component
+            if (this.joystick.deltaX < 0) {
+                this.joystick.dirValues.left = -this.joystick.deltaX / this.joystick.maxDistance * this.touchSensitivity;
+                this.touchInputs.left = true;
+            } else if (this.joystick.deltaX > 0) {
+                this.joystick.dirValues.right = this.joystick.deltaX / this.joystick.maxDistance * this.touchSensitivity;
                 this.touchInputs.right = true;
             }
-            // Down-Right quadrant
-            else if (angle >= PI8 && angle < 3 * PI8) {
-                this.touchInputs.right = true;
-                this.touchInputs.down = true;
-            }
-            // Down quadrant
-            else if (angle >= 3 * PI8 && angle < 5 * PI8) {
-                this.touchInputs.down = true;
-            }
-            // Down-Left quadrant
-            else if (angle >= 5 * PI8 && angle < 7 * PI8) {
-                this.touchInputs.left = true;
-                this.touchInputs.down = true;
-            }
-            // Left quadrant
-            else if (angle >= 7 * PI8 || angle < -7 * PI8) {
-                this.touchInputs.left = true;
-            }
-            // Up-Left quadrant
-            else if (angle >= -7 * PI8 && angle < -5 * PI8) {
-                this.touchInputs.left = true;
+            
+            // Vertical component
+            if (this.joystick.deltaY < 0) {
+                this.joystick.dirValues.up = -this.joystick.deltaY / this.joystick.maxDistance * this.touchSensitivity;
                 this.touchInputs.up = true;
-            }
-            // Up quadrant
-            else if (angle >= -5 * PI8 && angle < -3 * PI8) {
-                this.touchInputs.up = true;
-            }
-            // Up-Right quadrant
-            else if (angle >= -3 * PI8 && angle < -PI8) {
-                this.touchInputs.right = true;
-                this.touchInputs.up = true;
+            } else if (this.joystick.deltaY > 0) {
+                this.joystick.dirValues.down = this.joystick.deltaY / this.joystick.maxDistance * this.touchSensitivity;
+                this.touchInputs.down = true;
             }
         }
     }
@@ -321,5 +319,10 @@ export class InputHandler {
     // Gets the joystick data for rendering
     getJoystick() {
         return this.joystick;
+    }
+
+    // Methods to get the joystick directional values
+    getJoystickDirectionValue(direction) {
+        return this.joystick.dirValues[direction] || 0;
     }
 }
