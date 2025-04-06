@@ -40,6 +40,24 @@ export class Game {
         this.input.addKeyCallback('d', () => {
             this.renderer.toggleDebug();
         });
+        
+        // Add touch event listener for game state transitions
+        if (this.ui.isMobile) {
+            this.setupTouchEvents();
+        }
+    }
+    
+    setupTouchEvents() {
+        window.addEventListener('touchstart', (e) => {
+            if (this.state === 'menu') {
+                this.state = 'playing';
+                e.preventDefault();
+            } else if (this.state === 'gameOver') {
+                this.init();
+                this.state = 'playing';
+                e.preventDefault();
+            }
+        });
     }
 
     init() {

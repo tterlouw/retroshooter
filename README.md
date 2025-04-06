@@ -9,6 +9,7 @@ RetroShooter is a classic-style vertical scrolling shooter where players control
 ## Gameplay Features
 
 - **Player Controls**: Arrow keys for movement, space to shoot
+- **Mobile Controls**: Touch-based directional controls for mobile devices
 - **Fuel Management**: Decreases over time, replenished by collecting fuel items
 - **Multiple Enemy Types**:
   - Regular boats (basic enemies)
@@ -29,7 +30,7 @@ The game is built with a component-based, modular architecture using JavaScript 
 - **game.js**: Core game logic, entity management, and state handling
 - **entities.js**: Entity classes (Player, Enemy, Bullet, FuelItem, Bridge)
 - **renderer.js**: Rendering system for terrain, entities, and effects
-- **input.js**: Input handling with key event management
+- **input.js**: Input handling with key events and touch controls
 - **collision.js**: Optimized collision detection and effects
 - **ui.js**: User interface rendering (menus, HUD, transitions)
 - **pool.js**: Object pooling for improved performance
@@ -45,6 +46,7 @@ The game is built with a component-based, modular architecture using JavaScript 
 6. **Section Progression**: Difficulty scaling with section transitions
 7. **Responsive Design**: Canvas scaling based on window size
 8. **Sound Management**: Background music and sound effects
+9. **Mobile Support**: Touch controls for playing on mobile devices
 
 ## Enemy Types and Mechanics
 
@@ -74,7 +76,7 @@ Areas for potential expansion:
 - Additional enemy types and behaviors
 - Power-ups and weapon upgrades
 - More varied terrain features
-- Mobile touch controls
+- Enhanced mobile controls with customizable layout
 
 ## Assets
 
@@ -86,12 +88,29 @@ The game uses SVG assets for entities and WAV/MP3 files for sound effects:
 
 ## How to Play
 
+### Desktop Controls
 1. Open index.html in a web browser
 2. Press ENTER or SPACE to start the game
 3. Use arrow keys to navigate the river and avoid obstacles
 4. Press SPACE to shoot enemies
 5. Collect fuel items to maintain your fuel supply
 6. Try to progress through as many sections as possible
+
+### Mobile Controls
+1. Open index.html in a mobile browser
+2. Tap the screen to start the game
+3. Use the on-screen directional controls to navigate:
+   - Bottom left: Left/Right movement controls
+   - Bottom right: Up/Down movement controls
+4. Shooting is automatic on mobile devices
+5. Collect fuel items to maintain your fuel supply
+6. Tap the screen to restart after game over
+
+### Mobile Tips
+- For best experience, play in landscape orientation
+- The game prevents scrolling and zooming for better gameplay
+- Touch controls are sized proportionally to your screen
+- If performance issues occur, try closing other browser tabs
 
 ## Original Development Prompt
 
