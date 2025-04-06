@@ -24,8 +24,11 @@ export class Player extends Entity {
         this.input = input;
         this.bulletPool = bulletPool;
         this.speed = 200;
-        this.fireRate = 0.25; // Seconds between shots
+        this.fireRate = 0.15; // Faster fire rate for continuous shooting (was 0.25)
         this.fireTimer = 0;
+        this.width = 30;
+        this.height = 30;
+        this.autoFire = true; // Enable continuous firing by default
     }
     
     update(deltaTime) {
@@ -39,9 +42,9 @@ export class Player extends Entity {
         this.x = Math.max(0, Math.min(this.x, 480 - 30));
         this.y = Math.max(0, Math.min(this.y, 640 - 30));
         
-        // Handle shooting
+        // Automatic continuous shooting
         this.fireTimer -= deltaTime;
-        if (this.input.isKeyDown(' ') && this.fireTimer <= 0) {
+        if (this.autoFire && this.fireTimer <= 0) {
             this.shoot();
             this.fireTimer = this.fireRate;
         }
@@ -116,7 +119,7 @@ export class Enemy extends Entity {
                 // Default gunboat - moves straight down
                 this.speed = 100;
                 this.health = 1;
-                this.points = 10;
+                this.points = 100; // Increased from 10 to 100
                 this.width = 40;
                 this.height = 20;
                 break;
@@ -125,7 +128,7 @@ export class Enemy extends Entity {
                 // Enemy helicopter - moves in a sine wave pattern
                 this.speed = 120;
                 this.health = 1;
-                this.points = 15;
+                this.points = 150; // Increased from 15 to 150
                 this.width = 30;
                 this.height = 30;
                 this.movementPattern = 'sine';
@@ -137,7 +140,7 @@ export class Enemy extends Entity {
                 // Fast moving boat - harder to hit
                 this.speed = 180;
                 this.health = 1;
-                this.points = 20;
+                this.points = 200; // Increased from 20 to 200
                 this.width = 35;
                 this.height = 18;
                 break;
@@ -146,7 +149,7 @@ export class Enemy extends Entity {
                 // Armored boat - requires multiple hits
                 this.speed = 70;
                 this.health = 3;
-                this.points = 30;
+                this.points = 300; // Increased from 30 to 300
                 this.width = 45;
                 this.height = 25;
                 break;
@@ -155,7 +158,7 @@ export class Enemy extends Entity {
                 // Boat that fires back at the player
                 this.speed = 90;
                 this.health = 2;
-                this.points = 25;
+                this.points = 250; // Increased from 25 to 250
                 this.width = 40;
                 this.height = 20;
                 this.fireRate = 2; // Seconds between shots

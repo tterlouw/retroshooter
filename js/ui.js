@@ -31,20 +31,26 @@ export class UI {
         ctx.font = '20px Arial';
         ctx.fillText('Press ENTER or SPACE to Start', this.game.width / 2, this.game.height / 2 + 20);
         ctx.font = '16px Arial';
-        ctx.fillText('Arrow Keys to Move, Space to Shoot', this.game.width / 2, this.game.height / 2 + 60);
+        ctx.fillText('Arrow Keys to Move, Auto-Firing Enabled', this.game.width / 2, this.game.height / 2 + 60);
+        ctx.fillText('Shoot Enemies to Score Points!', this.game.width / 2, this.game.height / 2 + 85);
     }
     
     renderHUD(ctx) {
+        // Make score more prominent
+        ctx.fillStyle = '#FFFF00'; // Bright yellow for score
+        ctx.font = 'bold 24px Arial';
+        ctx.textAlign = 'left';
+        ctx.fillText(`SCORE: ${this.game.score}`, 10, 30);
+        
+        // Other HUD elements with regular styling
         ctx.fillStyle = '#fff';
         ctx.font = '16px Arial';
-        ctx.textAlign = 'left';
-        ctx.fillText(`Score: ${this.game.score}`, 10, 20);
-        ctx.fillText(`Fuel: ${Math.floor(this.game.fuel)}`, 10, 40);
-        ctx.fillText(`Lives: ${this.game.lives}`, 10, 60);
+        ctx.fillText(`Fuel: ${Math.floor(this.game.fuel)}`, 10, 55);
+        ctx.fillText(`Lives: ${this.game.lives}`, 10, 75);
         
         // Display current section in the upper right corner
         ctx.textAlign = 'right';
-        ctx.fillText(`Section: ${this.game.currentSection}`, this.game.width - 10, 20);
+        ctx.fillText(`Section: ${this.game.currentSection}`, this.game.width - 10, 30);
     }
     
     renderGameOver(ctx) {

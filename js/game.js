@@ -96,11 +96,12 @@ export class Game {
         this.fuelPool.update(deltaTime);
         this.bridgePool.update(deltaTime);
         
-        // Spawn enemies
+        // Spawn enemies - increased spawn rate for more shooting action
         this.enemyTimer -= deltaTime;
         if (this.enemyTimer <= 0) {
             this.spawnEnemy();
-            this.enemyTimer = (1 + Math.random() * 2) / this.difficultyMultiplier; // 1-3 seconds, adjusted by difficulty
+            // Reduced spawn time for more enemies (0.5 to 1 second between spawns)
+            this.enemyTimer = (0.5 + Math.random() * 0.5) / this.difficultyMultiplier; 
         }
         
         // Spawn fuel items
