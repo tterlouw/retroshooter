@@ -90,8 +90,8 @@ export class Game {
         this.entities.forEach(entity => entity.update(deltaTime));
         
         // Update all pools and add active objects to entities
-        this.updateBulletPool();
-        this.updateEnemyBulletPool();
+        this.updateBulletPool(deltaTime);
+        this.updateEnemyBulletPool(deltaTime);
         this.enemyPool.update(deltaTime);
         this.fuelPool.update(deltaTime);
         this.bridgePool.update(deltaTime);
@@ -131,8 +131,8 @@ export class Game {
         this.scrollSpeed += 0.1 * deltaTime;
     }
     
-    updateBulletPool() {
-        this.bulletPool.update(deltaTime => {});
+    updateBulletPool(deltaTime) {
+        this.bulletPool.update(deltaTime);
         const activeBullets = this.bulletPool.pool.filter(bullet => bullet.active);
         activeBullets.forEach(bullet => {
             if (!this.entities.includes(bullet)) {
@@ -141,8 +141,8 @@ export class Game {
         });
     }
     
-    updateEnemyBulletPool() {
-        this.enemyBulletPool.update(deltaTime => {});
+    updateEnemyBulletPool(deltaTime) {
+        this.enemyBulletPool.update(deltaTime);
         const activeEnemyBullets = this.enemyBulletPool.pool.filter(bullet => bullet.active);
         activeEnemyBullets.forEach(bullet => {
             if (!this.entities.includes(bullet)) {
