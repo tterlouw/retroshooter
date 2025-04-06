@@ -91,6 +91,7 @@ export class UI {
     
     renderTouchControls(ctx) {
         const touchAreas = this.game.input.getTouchAreas();
+        const joystick = this.game.input.getJoystick();
         
         ctx.save();
         ctx.globalAlpha = 0.5;
@@ -144,6 +145,115 @@ export class UI {
             
             ctx.fill();
         });
+        
+        // Draw fire button
+        if (touchAreas.fire) {
+            const area = touchAreas.fire;
+            
+            // Draw fire button
+            ctx.fillStyle = '#333333';
+            ctx.beginPath();
+            ctx.arc(
+                area.x + area.width / 2, 
+                area.y + area.height / 2, 
+                area.width / 2, 
+                0, 
+                Math.PI * 2
+            );
+            ctx.fill();
+            
+            // Draw icon for fire button
+            ctx.fillStyle = '#FF3333'; // Red color for fire button
+            ctx.beginPath();
+            // Draw a simple bullet shape
+            ctx.moveTo(area.x + area.width * 0.5, area.y + area.height * 0.3);
+            ctx.lineTo(area.x + area.width * 0.3, area.y + area.height * 0.7);
+            ctx.lineTo(area.x + area.width * 0.7, area.y + area.height * 0.7);
+            ctx.fill();
+        }
+        
+        // Draw virtual joystick if it's active/visible
+        if (joystick.visible) {
+            // Draw joystick base (outer circle)
+            ctx.fillStyle = '#333333';
+            ctx.beginPath();
+            ctx.arc(
+                joystick.startX, 
+                joystick.startY, 
+                joystick.maxDistance, 
+                0, 
+                Math.PI * 2
+            );
+            ctx.fill();
+            
+            // Draw crosshairs on base for visual reference
+            ctx.strokeStyle = '#555555';
+            ctx.lineWidth = 2;
+            
+            // Horizontal line
+            ctx.beginPath();
+            ctx.moveTo(joystick.startX - joystick.maxDistance * 0.7, joystick.startY);
+            ctx.lineTo(joystick.startX + joystick.maxDistance * 0.7, joystick.startY);
+            ctx.stroke();
+            
+            // Vertical line
+            ctx.beginPath();
+            ctx.moveTo(joystick.startX, joystick.startY - joystick.maxDistance * 0.7);
+            ctx.lineTo(joystick.startX, joystick.startY + joystick.maxDistance * 0.7);
+            ctx.stroke();
+            
+            // Draw joystick handle (inner circle)
+            const handleX = joystick.startX + joystick.deltaX;
+            const handleY = joystick.startY + joystick.deltaY;
+            
+            // Draw handle shadow for 3D effect
+            ctx.fillStyle = '#222222';
+            ctx.beginPath();
+            ctx.arc(
+                handleX + 2, 
+                handleY + 2, 
+                joystick.maxDistance * 0.4,
+                0, 
+                Math.PI * 2
+            );
+            ctx.fill();
+            
+            // Draw handle
+            ctx.fillStyle = '#AAAAAA'; 
+            ctx.beginPath();
+            ctx.arc(
+                handleX, 
+                handleY, 
+                joystick.maxDistance * 0.4, 
+                0, 
+                Math.PI * 2
+            );
+            ctx.fill();
+            
+            // Add a highlight/shine effect to handle
+            const gradient = ctx.createRadialGradient(
+                handleX - joystick.maxDistance * 0.15, 
+                handleY - joystick.maxDistance * 0.15,
+                0,
+                handleX, 
+                handleY,
+                joystick.maxDistance * 0.4
+            );
+            gradient.addColorStop(0, 'rgba(255, 255, 255, 0.8)');
+            gradient.addColorStop(0.5, 'rgba(255, 255, 255, 0.2)');
+            gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+            
+            ctx.fillStyle = gradient;
+            ctx.beginPath();
+            ctx.arc(
+                handleX, 
+                handleY, 
+                joystick.maxDistance * 0.4,
+                0, 
+                Math.PI * 2
+            );
+            ctx.fill();
+        }
         
         ctx.restore();
     }
