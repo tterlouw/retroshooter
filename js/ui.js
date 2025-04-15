@@ -45,8 +45,8 @@ export class UI {
         if (this.isMobile) {
             ctx.fillText('Tap to Start', this.game.width / 2, this.game.height / 2 + 20);
             ctx.font = '16px Arial';
-            ctx.fillText('Use On-screen Controls to Move', this.game.width / 2, this.game.height / 2 + 60);
-            ctx.fillText('Automatic Shooting Enabled', this.game.width / 2, this.game.height / 2 + 85);
+            ctx.fillText('Use On-screen Controls or Keyboard to Move', this.game.width / 2, this.game.height / 2 + 60);
+            ctx.fillText('Arrow Keys or On-screen Controls, Auto-Firing Enabled', this.game.width / 2, this.game.height / 2 + 85);
         } else {
             ctx.fillText('Press ENTER or SPACE to Start', this.game.width / 2, this.game.height / 2 + 20);
             ctx.font = '16px Arial';
