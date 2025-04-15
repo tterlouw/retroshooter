@@ -302,3 +302,8 @@ export class Game {
         this.width = width;
         this.height = height;
         
+        // Update collision manager boundaries
+        this.collisionManager.leftBankBoundary = this.width * 0.25;
+        this.collisionManager.rightBankBoundary = this.width * 0.75;
+    }
+}
