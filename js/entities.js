@@ -1,6 +1,7 @@
 import { AssetManager } from './assets.js';
 
-const assets = new AssetManager();
+// We'll no longer create our own asset manager here
+// Each entity will use the game's asset manager instance
 
 export class Entity {
     constructor(x, y) {
@@ -83,7 +84,14 @@ export class Player extends Entity {
     }
     
     render(ctx) {
-        ctx.drawImage(assets.sprites.helicopter, this.x, this.y, 30, 30);
+        // Use the game's assets instance instead of the local one
+        if (this.game && this.game.assets && this.game.assets.sprites && this.game.assets.sprites.helicopter) {
+            ctx.drawImage(this.game.assets.sprites.helicopter, this.x, this.y, 30, 30);
+        } else {
+            // Fallback rendering if assets aren't loaded
+            ctx.fillStyle = 'yellow';
+            ctx.fillRect(this.x, this.y, this.width, this.height);
+        }
     }
 }
 
@@ -262,20 +270,35 @@ export class Enemy extends Entity {
     render(ctx) {
         switch(this.type) {
             case 'boat':
-                ctx.drawImage(assets.sprites.gunboat, this.x, this.y, this.width, this.height);
+                if (this.game && this.game.assets && this.game.assets.sprites && this.game.assets.sprites.gunboat) {
+                    ctx.drawImage(this.game.assets.sprites.gunboat, this.x, this.y, this.width, this.height);
+                } else {
+                    ctx.fillStyle = 'blue';
+                    ctx.fillRect(this.x, this.y, this.width, this.height);
+                }
                 break;
                 
             case 'helicopter':
-                ctx.drawImage(assets.sprites.helicopter, this.x, this.y, this.width, this.height);
-                // Draw rotor animation
-                ctx.fillStyle = '#CCCCCC';
-                ctx.fillRect(this.x + 5, this.y - 2, this.width - 10, 2);
+                if (this.game && this.game.assets && this.game.assets.sprites && this.game.assets.sprites.helicopter) {
+                    ctx.drawImage(this.game.assets.sprites.helicopter, this.x, this.y, this.width, this.height);
+                    // Draw rotor animation
+                    ctx.fillStyle = '#CCCCCC';
+                    ctx.fillRect(this.x + 5, this.y - 2, this.width - 10, 2);
+                } else {
+                    ctx.fillStyle = 'green';
+                    ctx.fillRect(this.x, this.y, this.width, this.height);
+                }
                 break;
                 
             case 'fastBoat':
                 // Fast boat - red tinted
                 ctx.save();
-                ctx.drawImage(assets.sprites.gunboat, this.x, this.y, this.width, this.height);
+                if (this.game && this.game.assets && this.game.assets.sprites && this.game.assets.sprites.gunboat) {
+                    ctx.drawImage(this.game.assets.sprites.gunboat, this.x, this.y, this.width, this.height);
+                } else {
+                    ctx.fillStyle = 'red';
+                    ctx.fillRect(this.x, this.y, this.width, this.height);
+                }
                 ctx.fillStyle = 'rgba(255, 0, 0, 0.3)';
                 ctx.fillRect(this.x, this.y, this.width, this.height);
                 ctx.restore();
@@ -284,7 +307,12 @@ export class Enemy extends Entity {
             case 'heavyBoat':
                 // Heavy armored boat - draw with extra details
                 ctx.save();
-                ctx.drawImage(assets.sprites.gunboat, this.x, this.y, this.width, this.height);
+                if (this.game && this.game.assets && this.game.assets.sprites && this.game.assets.sprites.gunboat) {
+                    ctx.drawImage(this.game.assets.sprites.gunboat, this.x, this.y, this.width, this.height);
+                } else {
+                    ctx.fillStyle = 'purple';
+                    ctx.fillRect(this.x, this.y, this.width, this.height);
+                }
                 // Add armor plates
                 ctx.fillStyle = '#555555';
                 ctx.fillRect(this.x + 5, this.y - 2, this.width - 10, 4);
@@ -297,7 +325,12 @@ export class Enemy extends Entity {
                 
             case 'shooterBoat':
                 ctx.save();
-                ctx.drawImage(assets.sprites.gunboat, this.x, this.y, this.width, this.height);
+                if (this.game && this.game.assets && this.game.assets.sprites && this.game.assets.sprites.gunboat) {
+                    ctx.drawImage(this.game.assets.sprites.gunboat, this.x, this.y, this.width, this.height);
+                } else {
+                    ctx.fillStyle = 'orange';
+                    ctx.fillRect(this.x, this.y, this.width, this.height);
+                }
                 // Add gun turret
                 ctx.fillStyle = '#333333';
                 ctx.beginPath();
@@ -340,7 +373,12 @@ export class FuelItem extends Entity {
     }
     
     render(ctx) {
-        ctx.drawImage(assets.sprites.fuelItem, this.x, this.y, 20, 20);
+        if (this.game && this.game.assets && this.game.assets.sprites && this.game.assets.sprites.fuelItem) {
+            ctx.drawImage(this.game.assets.sprites.fuelItem, this.x, this.y, 20, 20);
+        } else {
+            ctx.fillStyle = 'yellow';
+            ctx.fillRect(this.x, this.y, 20, 20);
+        }
     }
 }
 

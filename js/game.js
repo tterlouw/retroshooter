@@ -62,6 +62,7 @@ export class Game {
 
     init() {
         this.player = new Player(this.width / 2, this.height - 50, this.input, this.bulletPool);
+        this.player.game = this; // Set game reference for the player
         this.entities = [this.player];
         this.score = 0;
         this.fuel = 100;
@@ -153,6 +154,10 @@ export class Game {
         this.bulletPool.update(deltaTime);
         const activeBullets = this.bulletPool.pool.filter(bullet => bullet.active);
         activeBullets.forEach(bullet => {
+            // Set game reference if not already set
+            if (!bullet.game) {
+                bullet.game = this;
+            }
             if (!this.entities.includes(bullet)) {
                 this.entities.push(bullet);
             }
@@ -163,6 +168,10 @@ export class Game {
         this.enemyBulletPool.update(deltaTime);
         const activeEnemyBullets = this.enemyBulletPool.pool.filter(bullet => bullet.active);
         activeEnemyBullets.forEach(bullet => {
+            // Set game reference if not already set
+            if (!bullet.game) {
+                bullet.game = this;
+            }
             if (!this.entities.includes(bullet)) {
                 this.entities.push(bullet);
             }
@@ -179,6 +188,7 @@ export class Game {
         enemy.y = -30;
         enemy.initialX = enemy.x;
         enemy.initialY = enemy.y;
+        enemy.game = this; // Set game reference for the enemy
         
         // If it's a shooting enemy, give it access to the bullet pool
         if (enemyType === 'shooterBoat') {
@@ -243,6 +253,7 @@ export class Game {
         const fuel = this.fuelPool.get();
         fuel.x = this.width * 0.25 + Math.random() * (this.width * 0.5 - 20);
         fuel.y = -20;
+        fuel.game = this; // Set game reference for fuel item
         fuel.active = true;
         this.entities.push(fuel);
     }
@@ -256,6 +267,7 @@ export class Game {
         bridge.sections = bridge.createSections();
         bridge.active = true;
         bridge.passed = false;
+        bridge.game = this; // Set game reference for the bridge
         this.entities.push(bridge);
     }
     
@@ -290,8 +302,3 @@ export class Game {
         this.width = width;
         this.height = height;
         
-        // Update collision manager boundaries
-        this.collisionManager.leftBankBoundary = this.width * 0.25;
-        this.collisionManager.rightBankBoundary = this.width * 0.75;
-    }
-}
